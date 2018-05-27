@@ -1,34 +1,62 @@
 import socket
+import threading
+import sys
 
-host = socket.gethostbyname(socket.gethostname())
-port = 9090
 
-clients = []
+# функция, регистрирующая клиента, принимающая его данные и добавляющая его в список
+def accept_client():
+    while True:
+        # accept
+        client_sock, client_add = server_socket.accept()
+        name = client_sock.recv(1024)
+        clients.append((name, client_sock))
+        print('{} is now connected'.format(name.decode('utf-8')))
+        # реализация многопоточного ожидания сообщений от клиентов
+        thread_client = threading.Thread(target=broadcast_user, args=(name, client_sock))
+        thread_client.start()
 
-s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-s.bind((host, port))
 
-quit = False
-print("[ Server Started ]")
+# функция, принимающая сообщения от клиентов и выводящаяя на экран логи
+def broadcast_user(name, sock):
+    while True:
+        try:
+            data = sock.recv(1024)
+            if data:
+                print("[{}] :: {}".format(name.decode('utf-8'), data.decode('utf-8')))
+                b_usr(sock, name, data)
+        except socket.error:
+            print("\n[ Server Stopped ]")
+            server_socket.send("\n[ Server Stopped ]".encode("utf-8"))
+            sys.exit()
 
-while not quit:
-    try:
-        data, addr = s.recvfrom(1024)
 
-        if addr not in clients:
-            clients.append(addr)
+# функция, отправляющая сообщение одного клиента всем остальным
+def b_usr(cs_sock, name, msg):
+    for client in clients:
+        if client[1] != cs_sock:
+            client[1].send(name)
+            client[1].send(msg)
 
-        print("[" + addr[0] + "]=[" + str(addr[1]) + "] / ", end="")
-        print(data.decode("utf-8"))
 
-        for client in clients:
-            if addr == client:
-                s.sendto("[>> send to server]".encode("utf-8"), client)
-            elif addr != client:
-                s.sendto(data, client)
-    except OSError:
-        print("\n[ Server Stopped ]")
-        s.sendall("\n[ Server Stopped ]".encode("utf-8"))
-        quit = True
+if __name__ == '__main__':
+    # список необходимых параметров для создания сокета
+    RECV_BUFFER = 1024
+    HOST = input('HOST: ')
+    PORT = int(input('PORT: '))
 
-s.close()
+    # список, где будут храниться данные о всех подключенных клиентах
+    clients = []
+
+    # создание сокета tcp/ip
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server_socket.bind((HOST, PORT))
+    server_socket.listen(10)
+
+    # сервер запустился
+    print("Chat server started on port " + str(PORT))
+    print(socket.gethostbyname(socket.gethostname()))
+
+# реализация многопоточного ожидания нового подключения
+thread_ac = threading.Thread(target=accept_client)
+thread_ac.start()
