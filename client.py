@@ -1,52 +1,68 @@
-import socket
+mport socket
+import sys
 import threading
-import time
-
-shutdown = False
-join = False
 
 
-def receiving(sock):
-    while not shutdown:
-        try:
-            while True:
-                data, addr = sock.recvfrom(1024)
-                print(data.decode("utf-8"))
-                time.sleep(0.2)
-        except OSError:
-            pass
+# функция отправки сообщений пользователю и подтверждения отправки
+def send():
+    try:
+        while True:
+            msg = input()
+            if msg == 'exit':
+                s.send((name + ' disconnected...').encode('utf-8'))
+                exit()
+            elif msg:
+                s.send(msg.encode('utf-8'))
+                print('OK . .\n')
+            else:
+                pass
+    except socket.error:
+        pass
 
 
-host = socket.gethostbyname(socket.gethostname())
-port = 0
+# функция, принимающая сообщения от других пользователей
+def receive():
+    try:
+        while True:
+            name = s.recv(1024)
+            data = s.recv(1024)
+            if data:
+                print(str(name.decode('utf-8')) + ' :: ' + str(data.decode('utf-8')))
+            else:
+                pass
+    except socket.error:
+        pass
 
-server = ("192.168.0.101", 9090)
 
-s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-s.bind((host, port))
-s.setblocking(0)
+if __name__ == '__main__':
 
-name = input("Name: ")
+    # проверка при запуске скрипта на введенные аргументы
+    if len(sys.argv) < 3:
+        exit('You need to enter 2 arguments: python3 client.py hostname port')
 
-rT = threading.Thread(target=receiving, args=(s,))
-rT.start()
+    # переменным присваиваются соответствующие значения аргументов
+    host = sys.argv[1]
+    port = int(sys.argv[2])
 
-while not shutdown:
-    if not join:
-        s.sendto((name + " >> join chat").encode("utf-8"), server)
-        join = True
-    else:
-        try:
-            message = input()
+    # создание сокета
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-            if message != "":
-                s.sendto((name + " :: " + message).encode("utf-8"), server)
-            elif message == "exit":
-                s.sendto((name + " << left chat").encode("utf-8"), server)
-            time.sleep(0.2)
-        except OSError:
-            s.sendto((name + " << left chat").encode("utf-8"), server)
-            shutdown = True
+    # соединение по указанному хосту и порту
+    try:
+        s.connect((host, port))
+    except socket.error:
+        print('connection failed')
+        sys.exit()
 
-rT.join()
-s.close()
+    name = input('Enter your name to enter the chat > ')
+    s.send(name.encode('utf-8'))
+
+    print('Connected... Start sending messages')
+
+    # реализация многопоточного принятия и отправки данных чере сокет
+    thread_send = threading.Thread(target=send)
+    thread_send.start()
+
+    thread_receive = threading.Thread(target=receive)
+    thread_receive.start()
