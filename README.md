@@ -8,62 +8,72 @@
 Скрипт требует для своей работы установленного интерпретатора Python версии 3.5
 Запуск на Linux:
 
-Сначала необходимо запустить сервер (файл server.py):
+Сначала необходимо запустить сервер (файл server.py) и ввести хост(необязательно) и порт для подключения:
 
 ```bash
-stanislavkostrov$ python3 server.py
-[ Server Started ]
+stanislavkostrov$ python3 /Users/stanislavkostrov/PycharmProjects/new_chat/server.py 
+HOST: 
+PORT: 5000
+Chat server started on port 5000
+192.168.0.101
 ```
-Далее в других консольных окнах активируем двух клиентов:
+Далее в других консольных окнах активируем двух клиентов и в качестве аргументов при запуске передаем так же хост и порт для соединения с сервером:
 
 ```bash
-stanislavkostrov$ python3 client.py
-Name: Stanislav
-[>> send to server]
+stanislavkostrov$ python3 /Users/stanislavkostrov/PycharmProjects/new_chat/client.py 192.168.0.101 5000
+Enter your name to enter the chat > Stanislav
+Connected... Start sending messages
 ```
 ```bash
-stanislavkostrov$ python3 client.py
-Name: Alexei
-[>> send to server]
+stanislavkostrov$ python3 /Users/stanislavkostrov/PycharmProjects/new_chat/client.py 192.168.0.101 5000
+Enter your name to enter the chat > Alexei
+Connected... Start sending messages
 ```
 Далее можно обмениваться сообщениями:
 
 ```bash
-stanislavkostrov$ python3 client.py
-Name: Stanislav
-[>> send to server]
-Alexei >> join chat
-Hello!
-[>> send to server]
-Alexei :: Hi!
-Alexei :: Hello, world!
+stanislavkostrov$ python3 /Users/stanislavkostrov/PycharmProjects/new_chat/client.py 192.168.0.101 5000
+Enter your name to enter the chat > Alexei
+Connected... Start sending messages
+Stanislav :: Hello!
+Hi!
+OK . .
+
+Stanislav :: Hello,world!!!
 Hello, Python!
-[>> send to server]
+OK . .
+
 ```
 
 ```bash
-stanislavkostrov$ python3 client.py
-Name: Alexei
-[>> send to server]
-Stanislav :: Hello!
-Hi!
-[>> send to server]
-Hello, world!
-[>> send to server]
-Stanislav :: Hello, Python!
+stanislavkostrov$ python3 /Users/stanislavkostrov/PycharmProjects/new_chat/client.py 192.168.0.101 5000
+Enter your name to enter the chat > Stanislav
+Connected... Start sending messages
+Hello!
+OK . .
+
+Alexei :: Hi!
+Hello,world!!!
+OK . .
+
+Alexei :: Hello, Python!
+
 ```
 
 Сервер логирует сообщения клиентов:
 
 ```bash
-python3 server.py
-[ Server Started ]
-[192.168.0.101]=[57267] / Stanislav >> join chat
-[192.168.0.101]=[65215] / Alexei >> join chat
-[192.168.0.101]=[57267] / Stanislav :: Hello!
-[192.168.0.101]=[65215] / Alexei :: Hi!
-[192.168.0.101]=[65215] / Alexei :: Hello, world!
-[192.168.0.101]=[57267] / Stanislav :: Hello, Python!
+stanislavkostrov$ python3 /Users/stanislavkostrov/PycharmProjects/new_chat/server.py 
+HOST: 
+PORT: 5000
+Chat server started on port 5000
+192.168.0.101
+Stanislav is now connected
+Alexei is now connected
+[Stanislav] :: Hello!
+[Alexei] :: Hi!
+[Stanislav] :: Hello,world!!!
+[Alexei] :: Hello, Python!
 ```
 Запуск на других операционных системах происходит аналогично.
 
